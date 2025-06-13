@@ -1,24 +1,36 @@
-ARG BUILD_FROM=ghcr.io/hassio-addons/base-nodejs:0.2.5
-# hadolint ignore=DL3006
-FROM ${BUILD_FROM}
+# Imagen base recomendada para add-ons de Home Assistant
+FROM ghcr.io/hassio-addons/base:alpine-3.18
 
-# Set shell
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+# Argumentos de build (puedes cambiar la versión de Overseerr si lo deseas)
+ARG OVERSEERR_VERSION="1.33.2"
+ARG COMMIT_TAG="dev"
 
-# Setup base
-ARG OVERSEERR_VERSION=1.33.4
-ENV COMMIT_TAG=v${OVERSEERR_VERSION}
-# hadolint ignore=DL3003,DL3042
-RUN apk add --no-cache --virtual .build-dependencies build-base python3
-RUN curl -J -L -o /tmp/overseerr.tar.gz "https://github.com/sct/overseerr/archive/v${OVERSEERR_VERSION}.tar.gz"
-RUN tar zxvf /tmp/overseerr.tar.gz --strip 1 -C /opt
-RUN cd /opt && CYPRESS_INSTALL_BINARY=0 yarn --frozen-lockfile --network-timeout 1000000
-RUN cd /opt && yarn build
-RUN cd /opt && yarn install --production --ignore-scripts --prefer-offline --network-timeout 1000000
-RUN cd /opt && yarn cache clean
+# Instala dependencias necesarias
+RUN apk add --no-cache \
+    build-base \
+    python3 \
+    yarn \
+    curl \
+    tar
+
+# Descarga y descomprime Overseerr
+RUN mkdir -p /opt \
+    && curl -J -L -o /tmp/overseerr.tar.gz "https://github.com/sct/overseerr/archive/v${OVERSEERR_VERSION}.tar.gz" \
+    && tar zxvf /tmp/overseerr.tar.gz --strip 1 -C /opt
+
+# Instala dependencias y compila Overseerr
+WORKDIR /opt
+RUN CYPRESS_INSTALL_BINARY=0 yarn --frozen-lockfile --network-timeout 1000000 \
+    && yarn build \
+    && yarn install --production --ignore-scripts --prefer-offline --network-timeout 1000000 \
+    && yarn cache clean
+
+# Guarda el commit tag
 RUN echo "{\"commitTag\": \"${COMMIT_TAG}\"}" > "/opt/committag.json"
-RUN apk del --no-cache --purge .build-dependencies
-RUN rm -f -r /opt/.next/cache /opt/server /opt/src /tmp/*
+
+# Limpieza final
+RUN apk del --no-cache build-base \
+    && rm -rf /opt/.next/cache /opt/server /opt/src /tmp/*
 
 # Copy root filesystem
 COPY rootfs /
