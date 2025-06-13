@@ -1,5 +1,6 @@
-# Imagen base recomendada para add-ons de Home Assistant
-FROM ghcr.io/hassio-addons/base:17.2.5
+ARG BUILD_FROM=ghcr.io/hassio-addons/base:17.2.5
+# hadolint ignore=DL3006
+FROM ${BUILD_FROM}
 
 # Argumentos de build (puedes cambiar la versión de Overseerr si lo deseas)
 ARG OVERSEERR_VERSION="1.33.2"
