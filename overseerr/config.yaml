@@ -17,3 +17,5 @@ map:
   - media:rw
 ports:
   5055/tcp: 5055
+environment:
+  HOST: 0.0.0.0
