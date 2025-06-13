@@ -9,17 +9,16 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG OVERSEERR_VERSION=1.33.4
 ENV COMMIT_TAG=v${OVERSEERR_VERSION}
 # hadolint ignore=DL3003,DL3042
-RUN apk add --no-cache --virtual .build-dependencies build-base python3 \
-    && curl -J -L -o /tmp/overseerr.tar.gz "https://github.com/sct/overseerr/archive/v${OVERSEERR_VERSION}.tar.gz" \
-    && tar zxvf /tmp/overseerr.tar.gz --strip 1 -C /opt \
-    && cd /opt \
-    && CYPRESS_INSTALL_BINARY=0 yarn --frozen-lockfile --network-timeout 1000000 \
-    && yarn build \
-    && yarn install --production --ignore-scripts --prefer-offline --network-timeout 1000000 \
-    && yarn cache clean \
-    && echo "{\"commitTag\": \"${COMMIT_TAG}\"}" > "/opt/committag.json" \
-    && apk del --no-cache --purge .build-dependencies \
-    && rm -f -r /opt/.next/cache /opt/server /opt/src /tmp/*
+RUN apk add --no-cache --virtual .build-dependencies build-base python3
+RUN curl -J -L -o /tmp/overseerr.tar.gz "https://github.com/sct/overseerr/archive/v${OVERSEERR_VERSION}.tar.gz"
+RUN tar zxvf /tmp/overseerr.tar.gz --strip 1 -C /opt
+RUN cd /opt && CYPRESS_INSTALL_BINARY=0 yarn --frozen-lockfile --network-timeout 1000000
+RUN cd /opt && yarn build
+RUN cd /opt && yarn install --production --ignore-scripts --prefer-offline --network-timeout 1000000
+RUN cd /opt && yarn cache clean
+RUN echo "{\"commitTag\": \"${COMMIT_TAG}\"}" > "/opt/committag.json"
+RUN apk del --no-cache --purge .build-dependencies
+RUN rm -f -r /opt/.next/cache /opt/server /opt/src /tmp/*
 
 # Copy root filesystem
 COPY rootfs /
