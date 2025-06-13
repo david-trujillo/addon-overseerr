@@ -1,5 +1,5 @@
 # Imagen base recomendada para add-ons de Home Assistant
-FROM ghcr.io/hassio-addons/base:alpine-3.18
+FROM ghcr.io/hassio-addons/base:17.2.5
 
 # Argumentos de build (puedes cambiar la versión de Overseerr si lo deseas)
 ARG OVERSEERR_VERSION="1.33.2"
